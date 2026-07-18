@@ -2,6 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import routes_papers, routes_summarize, routes_graph
 from app.core.config import settings
+from app.core.database import engine, Base
+from app.models import paper, graph
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Biomedical Research Paper Summarizer & Knowledge Graph Generator")
 
