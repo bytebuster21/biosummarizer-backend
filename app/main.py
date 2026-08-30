@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 from app.api import routes_papers, routes_summarize, routes_graph, routes_literature
 from app.core.config import settings
 from app.core.database import engine, Base
@@ -7,6 +8,19 @@ from app.models import paper, graph
 
 # Ensure all database tables exist
 Base.metadata.create_all(bind=engine)
+
+# Auto-migrate SQLite schema if new columns are missing
+with engine.connect() as conn:
+    try:
+        conn.execute(text("ALTER TABLE papers ADD COLUMN structured_summary TEXT"))
+        conn.commit()
+    except Exception:
+        pass
+    try:
+        conn.execute(text("ALTER TABLE papers ADD COLUMN graph_data TEXT"))
+        conn.commit()
+    except Exception:
+        pass
 
 app = FastAPI(
     title="BioLens: Biomedical Research Intelligence Platform",
