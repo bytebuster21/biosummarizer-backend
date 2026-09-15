@@ -18,13 +18,15 @@ def get_related_papers(paper_id: int, db: Session = Depends(get_db)):
     if not paper:
         return {"error": "Paper not found", "papers": []}
 
-    # Extract key entities to query PubMed
+    # Extract key entities to query PubMed, prioritizing specific biomedical types
     entities = extract_entities(paper.original_text)
-    query_terms = [e["name"] for e in entities[:4]]
+    priority_types = {"CHEMICAL", "DISEASE", "GENE_PROTEIN", "CLINICAL_TRIAL", "MUTATION_VARIANT"}
+    focused_entities = [e["name"] for e in entities if e.get("type") in priority_types]
+    query_terms = focused_entities[:4] if focused_entities else [e["name"] for e in entities[:4]]
     if not query_terms:
         query_terms = [paper.title]
 
-    related = fetch_related_papers_pubmed(query_terms, max_results=6)
+    related = fetch_related_papers_pubmed(query_terms, max_results=6, paper_title=paper.title)
     return {
         "paper_id": paper.id,
         "query_terms": query_terms,

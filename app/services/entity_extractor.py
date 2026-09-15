@@ -47,6 +47,14 @@ KNOWN_ENDPOINTS = {
 RE_MUTATION = re.compile(r"\b([A-Z]\d{2,4}[A-Z]|[A-Z]\d{2,4}del|exon\s*\d+\s*(?:del|ins|mutation)?|rs\d{4,10})\b", re.IGNORECASE)
 RE_TRIAL = re.compile(r"\b(NCT\d{8})\b", re.IGNORECASE)
 
+GENERIC_STOPWORDS = {
+    "death", "toxicity", "disease", "patient", "patients", "dose", "doses",
+    "year", "years", "minority", "trial", "trials", "treatment", "results",
+    "group", "groups", "cohort", "cohorts", "baseline", "rate", "rates",
+    "risk", "day", "days", "study", "data", "effects", "effect", "response",
+    "efficacy", "safety", "therapy", "therapy-related"
+}
+
 def extract_entities(text: str, max_chars: int = 150000) -> List[Dict[str, Any]]:
     """
     Extracts multi-class biomedical entities with semantic typing,
@@ -67,6 +75,9 @@ def extract_entities(text: str, max_chars: int = 150000) -> List[Dict[str, Any]]
                 raw_name = ent.text.strip()
                 clean_name = raw_name.strip(".,;:()[]\"'")
                 if len(clean_name) < 2 or clean_name.isnumeric():
+                    continue
+
+                if clean_name.lower() in GENERIC_STOPWORDS:
                     continue
 
                 ent_type = ent.label_ # DISEASE or CHEMICAL
