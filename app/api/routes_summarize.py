@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.paper import Paper
-from app.services.summarizer import summarize_text
+from app.services.summarizer import summarize_paper_multiview
+import json
 
 router = APIRouter()
 
@@ -12,8 +13,15 @@ def summarize_paper(paper_id: int, db: Session = Depends(get_db)):
     if not paper:
         return {"error": "Paper not found"}
 
-    summary = summarize_text(paper.original_text)
-    paper.summary = summary
+    multiview = summarize_paper_multiview(paper.original_text)
+
+    # Persist summary
+    paper.summary = multiview["clinical_summary"]
+    paper.structured_summary = json.dumps(multiview)
     db.commit()
 
-    return {"id": paper.id, "summary": summary}
+    return {
+        "id": paper.id,
+        "summary": multiview["clinical_summary"],
+        "multiview": multiview
+    }

@@ -9,4 +9,6 @@ class Paper(Base):
     title = Column(String, index=True)
     original_text = Column(Text)
     summary = Column(Text, nullable=True)
+    structured_summary = Column(Text, nullable=True) # JSON serialized multi-perspective brief
+    graph_data = Column(Text, nullable=True)         # JSON serialized knowledge graph
     uploaded_at = Column(DateTime, default=datetime.utcnow)
