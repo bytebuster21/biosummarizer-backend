@@ -13,6 +13,17 @@ def summarize_paper(paper_id: int, db: Session = Depends(get_db)):
     if not paper:
         return {"error": "Paper not found"}
 
+    if paper.structured_summary and paper.summary:
+        try:
+            cached_multiview = json.loads(paper.structured_summary)
+            return {
+                "id": paper.id,
+                "summary": paper.summary,
+                "multiview": cached_multiview
+            }
+        except Exception:
+            pass
+
     multiview = summarize_paper_multiview(paper.original_text)
 
     # Persist summary

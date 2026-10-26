@@ -44,6 +44,10 @@ def load_sample_paper(sample_id: str, db: Session = Depends(get_db)):
     if not sample:
         return {"error": "Sample paper not found"}
 
+    existing = db.query(Paper).filter(Paper.title == sample["title"]).first()
+    if existing:
+        return {"id": existing.id, "title": existing.title, "category": sample["category"]}
+
     paper = Paper(title=sample["title"], original_text=sample["abstract"])
     db.add(paper)
     db.commit()
@@ -86,5 +90,5 @@ def ask_paper_question(paper_id: int, payload: dict = Body(...), db: Session = D
 
 @router.get("/")
 def list_papers(db: Session = Depends(get_db)):
-    papers = db.query(Paper).order_by(Paper.id.desc()).limit(20).all()
+    papers = db.query(Paper.id, Paper.title, Paper.uploaded_at).order_by(Paper.id.desc()).limit(20).all()
     return [{"id": p.id, "title": p.title, "uploaded_at": p.uploaded_at.isoformat() if p.uploaded_at else None} for p in papers]

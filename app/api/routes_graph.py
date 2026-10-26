@@ -14,20 +14,31 @@ def get_graph(paper_id: int, db: Session = Depends(get_db)):
     if not paper:
         return {"error": "Paper not found"}
 
+    # Return cached graph if already computed to avoid redundant processing
+    if paper.graph_data:
+        try:
+            cached = json.loads(paper.graph_data)
+            if isinstance(cached, dict) and "nodes" in cached and "edges" in cached:
+                return cached
+        except Exception:
+            pass
+
     entities = extract_entities(paper.original_text)
     graph = build_graph(entities, full_text=paper.original_text)
 
-    # Persist graph data
-    try:
-        paper.graph_data = json.dumps(graph)
-        db.commit()
-    except Exception as e:
-        print(f"Graph persistence notice: {e}")
-
-    return {
+    result = {
         "paper_id": paper.id,
         "nodes": graph["nodes"],
         "edges": graph["edges"],
         "summary_stats": graph.get("summary_stats", {}),
         "entities": entities
     }
+
+    # Persist graph data
+    try:
+        paper.graph_data = json.dumps(result)
+        db.commit()
+    except Exception as e:
+        print(f"Graph persistence notice: {e}")
+
+    return result

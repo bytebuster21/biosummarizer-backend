@@ -1,4 +1,3 @@
-import spacy
 import re
 from typing import List, Dict, Any, Set
 from app.services.external_databases import build_external_links
@@ -11,6 +10,7 @@ def _get_nlp():
     if not _nlp_attempted:
         _nlp_attempted = True
         try:
+            import spacy
             _nlp = spacy.load("en_ner_bc5cdr_md")
         except Exception as e:
             print(f"Notice: scispaCy model load: {e}")
